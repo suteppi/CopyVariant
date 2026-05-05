@@ -1,0 +1,15 @@
+{
+  "name": "com.suteppistore.copyvariant",
+  "version": "1.0.0",
+  "displayName": "CopyVariant",
+  "description": "Unity Editor extension that generates prefab variants by copying material references from base costume prefabs onto a modified prefab.",
+  "unity": "2022.3",
+  "author": {
+    "name": "suteppi",
+    "email": "info@suteppi.net",
+    "url": "https://github.com/suteppi/CopyVariant"
+  },
+  "license": "MIT",
+  "url": "https://github.com/suteppi/CopyVariant",
+  "keywords": ["vrChat", "avatar", "prefab", "material", "variant"]
+}

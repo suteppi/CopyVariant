@@ -1,0 +1,10 @@
+{
+  "name": "SuteppiStore.CopyVariant.Editor",
+  "rootNamespace": "SuteppiStore.CopyVariant",
+  "references": [],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "autoReferenced": true
+}
