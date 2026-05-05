@@ -209,7 +209,7 @@ namespace SuteppiStore.CopyVariant
             EditorGUILayout.LabelField("出力フォルダ", EditorStyles.boldLabel);
             using (new EditorGUILayout.HorizontalScope())
             {
-                EditorGUILayout.TextField(_outputFolder, GUILayout.ExpandWidth(true));
+                _outputFolder = EditorGUILayout.TextField(_outputFolder, GUILayout.ExpandWidth(true));
                 if (GUILayout.Button("選択", GUILayout.Width(50)))
                     SelectOutputFolder();
             }
