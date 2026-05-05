@@ -10,6 +10,7 @@ namespace SuteppiStore.CopyVariant
     public class CopyVariantWindow : EditorWindow
     {
         private GameObject _editedPrefab;
+        private GameObject _originalPrefab;
         private readonly List<GameObject> _basePrefabs = new List<GameObject>();
         private string _outputFolder = "Assets";
         private ReorderableList _reorderableList;
@@ -57,6 +58,8 @@ namespace SuteppiStore.CopyVariant
             EditorGUILayout.Space(8);
 
             DrawEditedPrefabField();
+            EditorGUILayout.Space(4);
+            DrawOriginalPrefabField();
             EditorGUILayout.Space(8);
             _reorderableList.DoLayoutList();
             DrawBasePrefabToolbar();
@@ -184,6 +187,21 @@ namespace SuteppiStore.CopyVariant
                 else
                     _editedPrefab = next;
             }
+        }
+
+        private void DrawOriginalPrefabField()
+        {
+            EditorGUILayout.LabelField("変換前 Prefab（任意・マテリアル順補正用）", EditorStyles.boldLabel);
+            var next = (GameObject)EditorGUILayout.ObjectField(_originalPrefab, typeof(GameObject), false);
+            if (next != _originalPrefab)
+            {
+                if (next != null && !IsPrefabAsset(next))
+                    EditorUtility.DisplayDialog("エラー", "Prefab アセットを設定してください。", "OK");
+                else
+                    _originalPrefab = next;
+            }
+            if (_originalPrefab != null)
+                EditorGUILayout.HelpBox("変換前後でマテリアルの順番が変わっている場合に、参照の一致でスロット順を補正します。", MessageType.Info);
         }
 
         private void DrawOutputFolderField()
@@ -332,6 +350,13 @@ namespace SuteppiStore.CopyVariant
         {
             var baseMaterials = CollectMaterials(basePrefab);
 
+            if (_originalPrefab != null)
+            {
+                var originalMaterials = CollectMaterials(_originalPrefab);
+                var editedMaterials = CollectMaterials(_editedPrefab);
+                baseMaterials = RemapMaterials(baseMaterials, originalMaterials, editedMaterials);
+            }
+
             var instance = (GameObject)PrefabUtility.InstantiatePrefab(_editedPrefab);
             if (instance == null)
             {
@@ -355,6 +380,43 @@ namespace SuteppiStore.CopyVariant
             {
                 DestroyImmediate(instance);
             }
+        }
+
+        // Reorders baseMaterials to match the slot permutation between originalMaterials and editedMaterials.
+        // editedMaterials[i] is matched to the first unused slot j in originalMaterials where references are equal;
+        // the result at i is then baseMaterials[j].
+        private static List<Material> RemapMaterials(
+            List<Material> baseMaterials,
+            List<Material> originalMaterials,
+            List<Material> editedMaterials)
+        {
+            var usedOriginalIndices = new HashSet<int>();
+            var result = new List<Material>(editedMaterials.Count);
+
+            for (int i = 0; i < editedMaterials.Count; i++)
+            {
+                int found = -1;
+                for (int j = 0; j < originalMaterials.Count; j++)
+                {
+                    if (!usedOriginalIndices.Contains(j) && originalMaterials[j] == editedMaterials[i])
+                    {
+                        found = j;
+                        break;
+                    }
+                }
+
+                if (found >= 0 && found < baseMaterials.Count)
+                {
+                    result.Add(baseMaterials[found]);
+                    usedOriginalIndices.Add(found);
+                }
+                else
+                {
+                    result.Add(i < baseMaterials.Count ? baseMaterials[i] : null);
+                }
+            }
+
+            return result;
         }
 
         private static List<Material> CollectMaterials(GameObject prefab)
