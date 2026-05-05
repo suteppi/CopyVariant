@@ -30,3 +30,10 @@ jobs:
           files: "com.suteppistore.copyvariant-${{ steps.version.outputs.version }}.zip"
           tag_name: "v${{ steps.version.outputs.version }}"
           generate_release_notes: true
+
+      - name: Trigger VPM update
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.VPM_REPO_TOKEN }}
+          repository: suteppi/vpm-repo
+          event-type: package-release
