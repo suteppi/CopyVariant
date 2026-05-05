@@ -61,12 +61,118 @@ namespace SuteppiStore.CopyVariant
             DrawEditedPrefabField();
             EditorGUILayout.Space(8);
             _reorderableList.DoLayoutList();
+            DrawBasePrefabToolbar();
             EditorGUILayout.Space(8);
             DrawOutputFolderField();
             EditorGUILayout.Space(12);
             DrawGenerateButton();
 
             EditorGUILayout.EndScrollView();
+        }
+
+        private void DrawBasePrefabToolbar()
+        {
+            // Drop zone
+            var dropRect = GUILayoutUtility.GetRect(0, 36, GUILayout.ExpandWidth(true));
+            var style = new GUIStyle(EditorStyles.helpBox)
+            {
+                alignment = TextAnchor.MiddleCenter,
+                fontSize = 11,
+            };
+            GUI.Box(dropRect, "Prefab / フォルダをここにドロップ", style);
+            HandleDragAndDrop(dropRect);
+
+            // Folder add button
+            EditorGUILayout.Space(2);
+            if (GUILayout.Button("フォルダから一括追加..."))
+                AddPrefabsFromFolder();
+        }
+
+        private void HandleDragAndDrop(Rect dropRect)
+        {
+            var evt = Event.current;
+            if (!dropRect.Contains(evt.mousePosition)) return;
+
+            if (evt.type == EventType.DragUpdated)
+            {
+                DragAndDrop.visualMode = CanAcceptDrag()
+                    ? DragAndDropVisualMode.Copy
+                    : DragAndDropVisualMode.Rejected;
+                evt.Use();
+            }
+            else if (evt.type == EventType.DragPerform)
+            {
+                DragAndDrop.AcceptDrag();
+                AddPrefabsFromDraggedObjects(DragAndDrop.objectReferences);
+                evt.Use();
+            }
+        }
+
+        private static bool CanAcceptDrag()
+        {
+            foreach (var obj in DragAndDrop.objectReferences)
+            {
+                if (obj is GameObject go && IsPrefabAsset(go)) return true;
+                if (obj is DefaultAsset) return true; // folder
+            }
+            return false;
+        }
+
+        private void AddPrefabsFromDraggedObjects(Object[] objects)
+        {
+            int added = 0;
+            foreach (var obj in objects)
+            {
+                if (obj is GameObject go && IsPrefabAsset(go))
+                {
+                    if (!_basePrefabs.Contains(go)) { _basePrefabs.Add(go); added++; }
+                }
+                else if (obj is DefaultAsset)
+                {
+                    string folderPath = AssetDatabase.GetAssetPath(obj);
+                    if (AssetDatabase.IsValidFolder(folderPath))
+                        added += AddPrefabsInFolder(folderPath);
+                }
+            }
+            if (added > 0) Repaint();
+        }
+
+        private void AddPrefabsFromFolder()
+        {
+            string startDir = AssetPathToFullPath(_outputFolder);
+            if (!Directory.Exists(startDir)) startDir = Application.dataPath;
+
+            string selected = EditorUtility.OpenFolderPanel("Prefab フォルダを選択", startDir, "");
+            if (string.IsNullOrEmpty(selected)) return;
+
+            string dataPath = Application.dataPath.Replace('\\', '/').TrimEnd('/');
+            selected = selected.Replace('\\', '/').TrimEnd('/');
+
+            string folderAssetPath;
+            if (string.Equals(selected, dataPath, System.StringComparison.OrdinalIgnoreCase))
+                folderAssetPath = "Assets";
+            else if (selected.StartsWith(dataPath + "/", System.StringComparison.OrdinalIgnoreCase))
+                folderAssetPath = "Assets/" + selected.Substring(dataPath.Length + 1);
+            else
+            {
+                EditorUtility.DisplayDialog("エラー", "Assets フォルダ内のフォルダを選択してください。", "OK");
+                return;
+            }
+
+            int added = AddPrefabsInFolder(folderAssetPath);
+            if (added == 0)
+                EditorUtility.DisplayDialog("CopyVariant", "追加できる新しい Prefab が見つかりませんでした。", "OK");
+        }
+
+        private int AddPrefabsInFolder(string folderAssetPath)
+        {
+            int added = 0;
+            foreach (var guid in AssetDatabase.FindAssets("t:Prefab", new[] { folderAssetPath }))
+            {
+                var go = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(guid));
+                if (go != null && !_basePrefabs.Contains(go)) { _basePrefabs.Add(go); added++; }
+            }
+            return added;
         }
 
         private void DrawEditedPrefabField()
