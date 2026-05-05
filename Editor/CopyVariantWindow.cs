@@ -55,8 +55,6 @@ namespace SuteppiStore.CopyVariant
             _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
 
             EditorGUILayout.Space(8);
-            EditorGUILayout.LabelField("CopyVariant", EditorStyles.boldLabel);
-            EditorGUILayout.Space(4);
 
             DrawEditedPrefabField();
             EditorGUILayout.Space(8);
