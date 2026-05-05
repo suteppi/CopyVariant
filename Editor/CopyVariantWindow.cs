@@ -177,7 +177,7 @@ namespace SuteppiStore.CopyVariant
 
         private void DrawEditedPrefabField()
         {
-            EditorGUILayout.LabelField("改変 Prefab", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("変換済み Prefab", EditorStyles.boldLabel);
             var next = (GameObject)EditorGUILayout.ObjectField(_editedPrefab, typeof(GameObject), false);
             if (next != _editedPrefab)
             {
