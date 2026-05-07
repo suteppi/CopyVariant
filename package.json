@@ -1,5 +1,5 @@
 {
-  "name": "com.suteppistore.copyvariant",
+  "name": "net.suteppi.copyvariant",
   "version": "1.0.1",
   "displayName": "CopyVariant",
   "description": "Unity Editor extension that generates prefab variants by copying material references from base costume prefabs onto a modified prefab.",

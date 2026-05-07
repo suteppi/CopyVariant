@@ -21,13 +21,13 @@ jobs:
 
       - name: Create zip
         run: |
-          zip -r "com.suteppistore.copyvariant-${{ steps.version.outputs.version }}.zip" . \
+          zip -r "net.suteppi.copyvariant-${{ steps.version.outputs.version }}.zip" . \
             --exclude ".git*" --exclude ".github*"
 
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          files: "com.suteppistore.copyvariant-${{ steps.version.outputs.version }}.zip"
+          files: "net.suteppi.copyvariant-${{ steps.version.outputs.version }}.zip"
           tag_name: "v${{ steps.version.outputs.version }}"
           generate_release_notes: true
 
